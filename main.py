@@ -11,8 +11,9 @@ import os
 import time
 
 
-def main():
+def main(content_weight, second=False):
     use_cuda = torch.cuda.is_available()
+    print("cuda: " + str(use_cuda))
     dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
     # figure out the experiments type
     args = Options().parse()
@@ -26,9 +27,17 @@ def main():
         # desired size of the output image
         # imsize = 256 if use_cuda else 128  # use small size if no gpu
         args = Options().parse()
-
-        style_img = ul.Loader(args.style_image, args.style_size).image_loader().type(dtype)
-        content_img = ul.Loader(args.content_image, args.content_size).image_loader().type(dtype)
+        if (second):
+            print("Second run")
+            style_img = ul.Loader(second, args.style_size).image_loader().type(dtype)
+            content_img = ul.Loader(args.content_image, args.content_size).image_loader().type(dtype)
+        else:
+            if (args.second_style):
+                style_img = ul.Loader(args.style_image, args.style_size).image_loader().type(dtype)
+                content_img = ul.Loader(args.second_style, args.content_size).image_loader().type(dtype)
+            else:
+                style_img = ul.Loader(args.style_image, args.style_size).image_loader().type(dtype)
+                content_img = ul.Loader(args.content_image, args.content_size).image_loader().type(dtype)
 
         assert style_img.size() == content_img.size(), \
             "we need to import style and content images of the same size"
@@ -54,22 +63,25 @@ def main():
         # Finally, run the algorithm
 
         output = style.run_style_transfer(cnn, content_img, style_img, input_img,
-                                    num_steps=args.iters, style_weight=args.style_weight,
-                                    content_weight=args.content_weight)
+                                          num_steps=args.iters, style_weight=args.style_weight,
+                                          content_weight=content_weight)
 
         fig = plt.figure(frameon=False)
-        image_name = 'result_{}.jpg'.format(int(time.time()))
-        if os.path.exists('result.jpg'):
-            fig.savefig(image_name, bbox_inches='tight', pad_inches=-0.1)
+        # image_name = 'result_{}.jpg'.format(int(time.time()))
+        # if os.path.exists('result.jpg'):
+        #    fig.savefig(image_name, bbox_inches='tight', pad_inches=-0.1)
 
-        else:
-            fig.savefig('result.jpg', bbox_inches='tight', pad_inches=-0.1)
+        # else:
+        #    fig.savefig('result.jpg', bbox_inches='tight', pad_inches=-0.1)
 
-        ul.imshow(output, args.content_size, final=True, out='img_{}.jpg'.format(int(time.time())))
+        outputPath = 'result/img_{}.jpg'.format(int(time.time()))
+        ul.imshow(output, args.content_size, final=True, out=outputPath)
 
         # sphinx_gallery_thumbnail_number = 4
         plt.ioff()
-        plt.show()
+        # plt.show()
+        plt.close('all')
+        return outputPath
 
         # input_img2 = output.clone()
         # mix_output = style.run_style_transfer(cnn, content_img, input_img2, input_img,
@@ -87,4 +99,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    output = main(5)
+    torch.cuda.empty_cache()
+
+    args = Options().parse()
+    if (args.second_style):
+        main(args.content_weight, second=output)
+        print()
+        print()

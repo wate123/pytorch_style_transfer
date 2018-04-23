@@ -18,7 +18,7 @@ class Loader(object):
             if difference > 0:
                 image = image.crop((difference / 2, 0, height + (difference / 2), height))
             else:
-                image = image.crop((0, difference / 2, width, width + (difference / 2)))
+                image = image.crop((0, (-difference) / 2, width, width + ((-difference) / 2)))
 
         loader = transforms.Compose([
             transforms.Resize(self.size),  # scale imported image
@@ -38,12 +38,9 @@ def imshow(tensor, size, final=False, out=None):
     if final:
         image.save(out)
 
-    fig = plt.imshow(image)
-    fig.axes.get_xaxis().set_visible(False)
-    fig.axes.get_yaxis().set_visible(False)
-    # if title is not None:
-    #     plt.title(title)
-    plt.pause(0.001)  # pause a bit so that plots are updated
-
-
-
+    # fig = plt.imshow(image)
+    # fig.axes.get_xaxis().set_visible(False)
+    # fig.axes.get_yaxis().set_visible(False)
+    # # if title is not None:
+    # #     plt.title(title)
+    # plt.pause(0.001)  # pause a bit so that plots are updated
